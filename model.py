@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torchsummary import summary
-# from torchinfo import summary
 
 ##
 class SimpleNet(nn.Module):
