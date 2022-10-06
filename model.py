@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torchsummary import summary
-##a
+
 ##
 class SimpleNet(nn.Module):
     def __init__(self, n_hidden_block, n_feature, img_size):
