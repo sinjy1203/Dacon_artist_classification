@@ -118,15 +118,15 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         with torch.no_grad():
             Model.eval()
 
-            for val_x, val_y in val_loader:
-                val_x = val_x.to(device)
-                val_y = val_y.to(device)
+            for val in val_loader:
+                val_x = val['img'].to(device)
+                val_y = val['label'].to(device)
 
-                output = Model(train_x)
-                loss = loss_fn(output, train_y)
+                output = Model(val_x)
+                loss = loss_fn(output, val_y)
 
                 pred = pred_fn(tonumpy_fn(output))
-                label = tonumpy_fn(train_y)
+                label = tonumpy_fn(val_y)
                 score = score_fn(label, pred)
 
                 epoch_val_loss += loss.item() / val_iter_num
