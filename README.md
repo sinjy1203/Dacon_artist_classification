@@ -2,3 +2,4 @@
 ## Dacon competition
 ## classifiy artist through painting
 ## Framework: pytorch
+## command: python train.py --epochs 10

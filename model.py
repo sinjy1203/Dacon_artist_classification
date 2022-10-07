@@ -40,6 +40,16 @@ class SimpleNet(nn.Module):
         return x
 
 ##
+from sklearn.metrics import f1_score
+# loss_fn = nn.CrossEntropyLoss().to(device)
+tonumpy_fn = lambda x: x.detach().cpu().numpy()
+pred_fn = lambda x: np.argmax(x, axis=-1)
+score_fn = lambda y_true, y_pred: f1_score(y_true, y_pred, average='macro')
 if __name__ == '__main__':
-    model = SimpleNet(5, 100, 500).cuda()
-    summary(model, (3, 500, 500))
+    # model = SimpleNet(5, 100, 500).cuda()
+    # summary(model, (3, 500, 500))
+    Model = SimpleNet(5, 100, 500)
+    output = Model(torch.rand((10, 3, 500, 500)))
+    pred = pred_fn(tonumpy_fn(output))
+    score = score_fn(np.random.randint(50, size=10), pred)
+    print(score)

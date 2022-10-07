@@ -43,13 +43,17 @@ class ToTensor(object):
     def __call__(self, data):
         img = data['img']
         label = data['label']
+        img = self.totensor(img)
+        if img.shape[0] == 1:
+            img = img.repeat(3, 1, 1)
+        label = torch.tensor(label, dtype=torch.long)
 
-        data = {'img': self.totensor(img), 'label': label}
+        data = {'img': img, 'label': label}
         return data
 
 class Scale(object):
     def __init__(self, shape):
-        self.scale = transforms.Scale((shape, shape))
+        self.scale = transforms.Resize((shape, shape))
 
     def __call__(self, data):
         img = data['img']
@@ -64,7 +68,7 @@ if __name__ == "__main__":
     import warnings
     warnings.filterwarnings('ignore')
 
-    dataset_ = dataset(Path('data'), transform=transforms.Compose([Scale(2000)]))
+    dataset_ = dataset(Path('data'), transform=transforms.Compose([Scale(500), ToTensor()]))
     # dataset_ = dataset(Path('data'))
 
     data = dataset_.__getitem__(0)
