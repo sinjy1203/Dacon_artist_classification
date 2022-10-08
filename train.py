@@ -85,7 +85,7 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
     Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
     optim = torch.optim.Adam(Model.parameters(), lr=LR)
-    early_stopping = EarlyStopping(fold, path=str(ckpt_dir))
+    early_stopping = EarlyStopping(fold, path=ckpt_dir)
 
     train_iter_num = len(train_loader)
     val_iter_num = len(val_loader)
