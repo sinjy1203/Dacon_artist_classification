@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 from pathlib import Path
 from tqdm import tqdm
+import shutil
 
 import torch
 import torch.nn as nn
@@ -42,15 +43,20 @@ IMG_SHAPE = args.img_shape
 
 ##
 ROOT_DIR = Path(args.root_dir)
+
 log_dir = ROOT_DIR / 'log'
+if log_dir.exists():
+    shutil.rmtree(log_dir)
 log_dir.mkdir(exist_ok=True)
+
 ckpt_dir = ROOT_DIR / 'ckpt'
+if ckpt_dir.exists():
+    shutil.rmtree(ckpt_dir)
 ckpt_dir.mkdir(exist_ok=True)
 
 ##
 dataset_train = dataset(data_dir=ROOT_DIR / 'data',
                         transform=transforms.Compose([Scale(IMG_SHAPE), ToTensor()]))
-loader_train = DataLoader(dataset=dataset_train, batch_size=BATCH_SIZE)
 
 if DEVICE == 'auto':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -97,9 +103,9 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         epoch_val_score = 0
         Model.train()
 
-        for train in tqdm(train_loader, desc='Epoch {}'.format(epoch)):
-            train_x = train['img'].to(device)
-            train_y = train['label'].to(device)
+        for train_x, train_y in tqdm(train_loader, desc='Epoch {}'.format(epoch)):
+            train_x = train_x.to(device)
+            train_y = train_y.to(device)
 
             optim.zero_grad()
 
@@ -118,9 +124,9 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         with torch.no_grad():
             Model.eval()
 
-            for val in val_loader:
-                val_x = val['img'].to(device)
-                val_y = val['label'].to(device)
+            for val_x, val_y in val_loader:
+                val_x = val_x.to(device)
+                val_y = val_y.to(device)
 
                 output = Model(val_x)
                 loss = loss_fn(output, val_y)
