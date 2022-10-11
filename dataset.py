@@ -22,8 +22,8 @@ class dataset(Dataset):
         self.data_csv = pd.read_csv(data_dir / 'train.csv')
         self.le = LabelEncoder()
         self.le.fit(self.data_csv['artist'])
-
-        self.data_csv = pd.read_csv(data_dir / 'test.csv')
+        if not label:
+            self.data_csv = pd.read_csv(data_dir / 'test.csv')
         self.label = label
 
     def __len__(self):

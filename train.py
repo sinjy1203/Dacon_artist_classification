@@ -89,7 +89,8 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         sampler=val_subsampler
     )
 
-    Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
+    # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
+    Model = ResNet(freeze=True).to(device)
     optim = torch.optim.Adam(Model.parameters(), lr=LR)
     early_stopping = EarlyStopping(fold, path=ckpt_dir)
 

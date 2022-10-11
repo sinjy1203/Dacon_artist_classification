@@ -51,7 +51,7 @@ class EarlyStopping:
 
             if self.save_path:
                 self.save_path.unlink()
-            self.save_path = self.path / ("{}_fold".format(self.cv) + str(np.round(score*100, 2)) + '.pth')
+            self.save_path = self.path / ("{}_fold".format(self.cv) + str(np.round(score, 2)) + '.pth')
             torch.save(model.state_dict(), self.save_path)
 
         else:
