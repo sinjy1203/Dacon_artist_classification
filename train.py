@@ -144,15 +144,10 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
             print("Early stopping")
             break
 
-        writer.add_scalars("Loss", {str(fold): epoch_train_loss}, epoch)
-        writer.add_scalars("Score", {str(fold): epoch_train_score}, epoch)
-        writer.add_scalars("Loss", {str(fold): epoch_val_loss}, epoch)
-        writer.add_scalars("Score", {str(fold): epoch_val_score}, epoch)
-
-        # writer.add_scalars("fold {} Loss".format(fold), {"train": epoch_train_loss}, epoch)
-        # writer.add_scalars("fold {} Score".format(fold), {"train": epoch_train_score}, epoch)
-        # writer.add_scalars("fold {} Loss".format(fold), {"valid": epoch_val_loss}, epoch)
-        # writer.add_scalars("fold {} Score".format(fold), {"valid": epoch_val_score}, epoch)
+        writer.add_scalars("fold {} Loss".format(fold), {"train": epoch_train_loss}, epoch)
+        writer.add_scalars("fold {} Score".format(fold), {"train": epoch_train_score}, epoch)
+        writer.add_scalars("fold {} Loss".format(fold), {"valid": epoch_val_loss}, epoch)
+        writer.add_scalars("fold {} Score".format(fold), {"valid": epoch_val_score}, epoch)
 
     final_score += early_stopping.best_score / CV
 
