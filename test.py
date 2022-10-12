@@ -15,7 +15,7 @@ from dataset import *
 from utils import *
 
 ##
-parser = argparse.ArgumentParser(description="train model")
+parser = argparse.ArgumentParser(description="test model")
 parser.add_argument('--epochs', default=100, type=int, dest='epochs')
 parser.add_argument('--batch_size', default=32, type=int, dest='batch_size')
 parser.add_argument('--lr', default=0.001, type=float, dest='lr')
