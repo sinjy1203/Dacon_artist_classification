@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torchsummary import summary
 from torchvision import models
+from efficientnet_pytorch import EfficientNet as efficientnet
 
 ##
 class SimpleNet(nn.Module):
@@ -54,6 +55,18 @@ class ResNet(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+class EfficientNet(nn.Module):
+    def __init__(self, freeze=True):
+        super(EfficientNet, self).__init__()
+        self.net = efficientnet.from_pretrained('efficientnet-b0')
+        if freeze:
+            for param in self.net.parameters():
+                param.requires_grad = False
+        self.net._fc = nn.Linear(self.net._fc.in_features, 50)
+
+    def forward(self, x):
+        return self.net(x)
+
 
 
 ##
@@ -63,12 +76,15 @@ tonumpy_fn = lambda x: x.detach().cpu().numpy()
 pred_fn = lambda x: np.argmax(x, axis=-1)
 score_fn = lambda y_true, y_pred: f1_score(y_true, y_pred, average='macro')
 if __name__ == '__main__':
-    model = SimpleNet(5, 100, 500).cuda()
-    # model = models.resnet50(pretrained=True)
-    # for param in model.parameters():
+    # model = SimpleNet(5, 100, 500).cuda()
+    # model = efficientnet.from_pretrained("efficientnet-b0")
+    # model = models.resnet18(pretrained=True)
+    model = EfficientNet(freeze=False)
+    # for name, param in model.named_parameters():
     #     param.requires_grad = False
     # model.fc = nn.Linear(model.fc.in_features, 50)
     # model = ResNet(freeze=True)
+    # model._fc = nn.Linear(model._fc.in_features, 50)
     model = model.to(device='cuda')
     summary(model, (3, 500, 500))
     # Model = SimpleNet(5, 100, 500)

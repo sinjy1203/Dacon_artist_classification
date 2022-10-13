@@ -5,6 +5,7 @@ from tqdm import tqdm
 import shutil
 import argparse
 import glob
+import gc
 
 import torch
 import torch.nn as nn
@@ -62,7 +63,7 @@ with torch.no_grad():
     for fold, model_path in enumerate(glob.glob(str(ROOT_DIR / 'ckpt' / '*')), start=1):
         loader_test = DataLoader(dataset=dataset_test, batch_size=BATCH_SIZE)
         # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
-        Model = ResNet(freeze=True).to(device)
+        Model = ResNet(freeze=False).to(device)
         Model.load_state_dict(torch.load(model_path))
 
         Model.eval()
@@ -74,6 +75,8 @@ with torch.no_grad():
             pred_prob = tonumpy_fn(output)
             pred += [pred_prob]
         pred_total += [np.concatenate(pred, axis=0)]
+        del Model, pred, test_x, output, pred_prob
+        gc.collect()
 
 ##
 pred_indices = np.mean(np.stack(pred_total, axis=-1), axis=-1).argmax(axis=-1)

@@ -18,6 +18,9 @@ from dataset import *
 from utils import *
 
 ##
+import warnings
+warnings.filterwarnings('ignore')
+
 parser = argparse.ArgumentParser(description="train model")
 parser.add_argument('--epochs', default=100, type=int, dest='epochs')
 parser.add_argument('--batch_size', default=32, type=int, dest='batch_size')
@@ -55,8 +58,18 @@ if ckpt_dir.exists():
 ckpt_dir.mkdir(exist_ok=True)
 
 ##
-dataset_train = dataset(data_dir=ROOT_DIR / 'data',
-                        transform=transforms.Compose([Scale(IMG_SHAPE), ToTensor()]))
+# dataset_train = dataset(data_dir=ROOT_DIR / 'data',
+#                         transform=transforms.Compose([Scale(IMG_SHAPE), ToTensor()]))
+dataset_train = dataset(
+    data_dir=ROOT_DIR / 'data',
+    transform=transforms.Compose([
+        transforms.RandomResizedCrop(size=(IMG_SHAPE, IMG_SHAPE)),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+        transforms.RandomHorizontalFlip(0.5),
+        transforms.RandomPerspective(distortion_scale=0.3, p=0.5),
+        transforms.RandomRotation(45),
+        transforms.ToTensor()
+    ]))
 
 if DEVICE == 'auto':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -90,7 +103,8 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
     )
 
     # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
-    Model = ResNet(freeze=True).to(device)
+    # Model = ResNet(freeze=False).to(device)
+    Model = EfficientNet(freeze=False).to(device)
     optim = torch.optim.Adam(Model.parameters(), lr=LR)
     early_stopping = EarlyStopping(fold, path=ckpt_dir)
 

@@ -62,16 +62,37 @@ class Scale(object):
         return self.scale(img)
 
 
+
 ##
+from torchvision import transforms
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings('ignore')
 
-    dataset_ = dataset(Path('data'), label=False, transform=transforms.Compose([Scale(500), ToTensor()]))
-    # dataset_ = dataset(Path('data'))
+    # dataset_ = dataset(Path('data'), label=False, transform=transforms.Compose([Scale(500), ToTensor()]))
+    dataset_ = dataset(
+        Path('data'),
+        transform=transforms.Compose([
+            transforms.RandomResizedCrop(size=(300, 300)),
+            transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.RandomPerspective(distortion_scale=0.3, p=0.5),
+            transforms.RandomRotation(45),
+            transforms.ToTensor()
+        ]))
 
-    img = dataset_.__getitem__(0)
-    # print(img.shape)
-    # plt.imshow(data['img'])
+    img, _ = dataset_.__getitem__(1)
+    # img_aug = transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+    # img_aug = transforms.RandomHorizontalFlip(0.5)
+    # img_aug = transforms.RandomPerspective(distortion_scale=0.3, p=1)
+    # img_aug = transforms.RandomResizedCrop(size=(300, 300))
+    # img_aug = transforms.RandomRotation(45)
+    # img_ = img_aug(img)
+    # print(np.array(img_).shape)
+    # plt.subplot(121)
+    # print(np.array(img).shape)
+    # plt.imshow(img)
+    # plt.subplot(122)
+    # plt.imshow(img_)
     # plt.show()
     print(img.shape)
