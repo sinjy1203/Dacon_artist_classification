@@ -40,12 +40,6 @@ N_BLOCKS = args.n_blocks
 FEATURE = args.feature
 IMG_SHAPE = args.img_shape
 ROOT_DIR = Path(args.root_dir)
-# N_BLOCKS = 2
-# FEATURE = 100
-# IMG_SHAPE = 100
-# ROOT_DIR = Path('.')
-# ROOT_DIR_ = Path('C:/Users/sinjy/Desktop')
-# BATCH_SIZE = 32
 
 ##
 dataset_test = dataset(data_dir=ROOT_DIR / 'data', label=False,
@@ -63,7 +57,8 @@ with torch.no_grad():
     for fold, model_path in enumerate(glob.glob(str(ROOT_DIR / 'ckpt' / '*')), start=1):
         loader_test = DataLoader(dataset=dataset_test, batch_size=BATCH_SIZE)
         # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
-        Model = ResNet(freeze=False).to(device)
+        # Model = ResNet(freeze=False).to(device)
+        Model = EfficientNet(freeze=False).to(device)
         Model.load_state_dict(torch.load(model_path))
 
         Model.eval()

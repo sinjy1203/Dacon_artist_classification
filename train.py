@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 from tqdm import tqdm
 import shutil
+import gc
 
 import torch
 import torch.nn as nn
@@ -68,8 +69,11 @@ dataset_train = dataset(
         transforms.RandomHorizontalFlip(0.5),
         transforms.RandomPerspective(distortion_scale=0.3, p=0.5),
         transforms.RandomRotation(45),
-        transforms.ToTensor()
+        ToTensor()
     ]))
+
+dataset_valid = dataset(data_dir=ROOT_DIR / 'data',
+                        transform=transforms.Compose([Scale(IMG_SHAPE), ToTensor()]))
 
 if DEVICE == 'auto':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -98,7 +102,7 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         sampler=train_subsampler
     )
     val_loader = torch.utils.data.DataLoader(
-        dataset_train, batch_size=BATCH_SIZE,
+        dataset_valid, batch_size=BATCH_SIZE,
         sampler=val_subsampler
     )
 
@@ -163,7 +167,12 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         writer.add_scalars("fold {} Loss".format(fold), {"valid": epoch_val_loss}, epoch)
         writer.add_scalars("fold {} Score".format(fold), {"valid": epoch_val_score}, epoch)
 
+        del train_x, train_y, val_x, val_y
+        gc.collect()
+
     final_score += early_stopping.best_score / CV
+    del Model
+    gc.collect()
 
 print("Final Macro F1 score: {}".format(final_score))
 writer.close()

@@ -78,8 +78,8 @@ score_fn = lambda y_true, y_pred: f1_score(y_true, y_pred, average='macro')
 if __name__ == '__main__':
     # model = SimpleNet(5, 100, 500).cuda()
     # model = efficientnet.from_pretrained("efficientnet-b0")
-    # model = models.resnet18(pretrained=True)
-    model = EfficientNet(freeze=False)
+    model = ResNet(freeze=False)
+    # model = EfficientNet(freeze=False)
     # for name, param in model.named_parameters():
     #     param.requires_grad = False
     # model.fc = nn.Linear(model.fc.in_features, 50)
