@@ -19,12 +19,12 @@
 </br>
 
 ## 3. file 설명
-### 'train.py' training model
-### 'test.py' make submission file 
-### 'model.py' custom model
-### 'dataset.py' custom dataset
-### 'utils.py' early stopping
-### 'run_colab' 코랩 환경에서 gpu로 학습
+'train.py' training model
+'test.py' make submission file 
+'model.py' custom model
+'dataset.py' custom dataset
+'utils.py' early stopping
+'run_colab' 코랩 환경에서 gpu로 학습
 
 </br>
 
