@@ -5,6 +5,8 @@ from pathlib import Path
 from tqdm import tqdm
 import shutil
 import gc
+import os
+import stat
 
 import torch
 import torch.nn as nn
@@ -34,6 +36,8 @@ parser.add_argument('--root_dir', default='.', type=str, dest='root_dir')
 parser.add_argument('--n_blocks', default=2, type=int, dest='n_blocks')
 parser.add_argument('--feature', default=100, type=int, dest='feature')
 parser.add_argument('--img_shape', default=500, type=int, dest='img_shape')
+parser.add_argument('--cutmix_prob', default=0.5, type=float, dest='cutmix_prob')
+parser.add_argument('--train_fold', nargs='+', type=int, dest='train_fold')
 
 args = parser.parse_args()
 EPOCHS = args.epochs
@@ -44,23 +48,25 @@ DEVICE = args.device
 N_BLOCKS = args.n_blocks
 FEATURE = args.feature
 IMG_SHAPE = args.img_shape
+CUTMIX_PROB = args.cutmix_prob
 
 ##
 ROOT_DIR = Path(args.root_dir)
 
+
+def remove_readonly(func, path, excinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
 log_dir = ROOT_DIR / 'log'
 if log_dir.exists():
-    shutil.rmtree(log_dir)
+    shutil.rmtree(log_dir, onerror=remove_readonly)
 log_dir.mkdir(exist_ok=True)
 
 ckpt_dir = ROOT_DIR / 'ckpt'
-if ckpt_dir.exists():
-    shutil.rmtree(ckpt_dir)
 ckpt_dir.mkdir(exist_ok=True)
 
 ##
-# dataset_train = dataset(data_dir=ROOT_DIR / 'data',
-#                         transform=transforms.Compose([Scale(IMG_SHAPE), ToTensor()]))
 dataset_train = dataset(
     data_dir=ROOT_DIR / 'data',
     transform=transforms.Compose([
@@ -80,7 +86,7 @@ if DEVICE == 'auto':
 else:
     device = torch.device(DEVICE)
 
-kfold = KFold(n_splits=CV, shuffle=True)
+kfold = KFold(n_splits=CV, shuffle=True, random_state=1)
 writer = SummaryWriter(log_dir=str(log_dir))
 
 ##
@@ -92,6 +98,8 @@ score_fn = lambda y_true, y_pred: f1_score(y_true, y_pred, average='macro')
 ##
 final_score = 0
 for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
+    if fold not in args.train_fold:
+        continue
     print("Fold {} training".format(fold+1))
 
     train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
@@ -128,17 +136,17 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
             optim.zero_grad()
 
-            output = Model(train_x)
-            loss = loss_fn(output, train_y)
+            r = np.random.rand(1)
+            if r < CUTMIX_PROB:
+                loss = cutmix(train_x, train_y, Model, loss_fn)
+            else:
+                output = Model(train_x)
+                loss = loss_fn(output, train_y)
+
             loss.backward()
             optim.step()
 
-            pred = pred_fn(tonumpy_fn(output))
-            label = tonumpy_fn(train_y)
-            score = score_fn(label, pred)
-
             epoch_train_loss += loss.item() / train_iter_num
-            epoch_train_score += score / train_iter_num
 
         with torch.no_grad():
             Model.eval()
@@ -163,14 +171,13 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
             break
 
         writer.add_scalars("fold {} Loss".format(fold), {"train": epoch_train_loss}, epoch)
-        writer.add_scalars("fold {} Score".format(fold), {"train": epoch_train_score}, epoch)
         writer.add_scalars("fold {} Loss".format(fold), {"valid": epoch_val_loss}, epoch)
         writer.add_scalars("fold {} Score".format(fold), {"valid": epoch_val_score}, epoch)
 
         del train_x, train_y, val_x, val_y
         gc.collect()
 
-    final_score += early_stopping.best_score / CV
+    final_score += early_stopping.best_score / len(args.train_fold)
     del Model
     gc.collect()
 

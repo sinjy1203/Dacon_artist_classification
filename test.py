@@ -24,6 +24,7 @@ parser.add_argument('--cv', default=5, type=int, dest='cv')
 parser.add_argument('--device', default='auto', type=str, dest='device')
 
 parser.add_argument('--root_dir', default='.', type=str, dest='root_dir')
+parser.add_argument('--ckpt_dir', default='ckpt', type=str, dest='ckpt_dir')
 
 parser.add_argument('--n_blocks', default=2, type=int, dest='n_blocks')
 parser.add_argument('--feature', default=100, type=int, dest='feature')
@@ -54,7 +55,7 @@ pred_fn = lambda x: np.argmax(x, axis=-1)
 ## ensemble model to predict
 pred_total = []
 with torch.no_grad():
-    for fold, model_path in enumerate(glob.glob(str(ROOT_DIR / 'ckpt' / '*')), start=1):
+    for fold, model_path in enumerate(glob.glob(str(Path(args.ckpt_dir) / '*')), start=1):
         loader_test = DataLoader(dataset=dataset_test, batch_size=BATCH_SIZE)
         # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
         # Model = ResNet(freeze=False).to(device)
