@@ -7,6 +7,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from torchvision import transforms
 
+##
+if glob.glob(str(Path('ckpt') / '{}_*.pth'.format(3))):
+    print(1)
 
 ##
 data_dir = Path('C:/Users/sinjy/PycharmProjects/data/dacon_artist')

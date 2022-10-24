@@ -1,4 +1,5 @@
 ##
+import glob
 import numpy as np
 import torch
 import torch.nn as nn
@@ -67,6 +68,14 @@ class EfficientNet(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+class EfficientNet_v2(nn.Module):
+    def __init__(self):
+        super(EfficientNet_v2, self).__init__()
+        self.net = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True, nclass=50)
+
+    def forward(self, x):
+        return self.net(x)
+
 
 
 ##
@@ -78,17 +87,27 @@ score_fn = lambda y_true, y_pred: f1_score(y_true, y_pred, average='macro')
 if __name__ == '__main__':
     # model = SimpleNet(5, 100, 500).cuda()
     # model = efficientnet.from_pretrained("efficientnet-b0")
-    model = ResNet(freeze=False)
-    # model = EfficientNet(freeze=False)
+    # model = ResNet(freeze=False)
+    # model_path = glob.glob('./ckpt/2_*.pth')[0]
+    # Model = EfficientNet(freeze=False)
+    # Model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     # for name, param in model.named_parameters():
     #     param.requires_grad = False
     # model.fc = nn.Linear(model.fc.in_features, 50)
     # model = ResNet(freeze=True)
     # model._fc = nn.Linear(model._fc.in_features, 50)
-    model = model.to(device='cuda')
-    summary(model, (3, 500, 500))
+    # model = model.to(device='cuda')
+    # summary(model, (3, 500, 500))
     # Model = SimpleNet(5, 100, 500)
     # output = Model(torch.rand((10, 3, 500, 500)))
     # pred = pred_fn(tonumpy_fn(output))
     # score = score_fn(np.random.randint(50, size=10), pred)
     # print(score)
+    # model = models.efficientnet
+    # model = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True, nclass=50)
+    # summary(model, (3, 500, 500), device='cpu')
+    Model = EfficientNet_v2()
+    summary(Model, (3, 500, 500), device='cpu')
+    
+
+

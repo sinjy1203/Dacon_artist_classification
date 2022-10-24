@@ -55,12 +55,13 @@ pred_fn = lambda x: np.argmax(x, axis=-1)
 ## ensemble model to predict
 pred_total = []
 with torch.no_grad():
-    for fold, model_path in enumerate(glob.glob(str(Path(args.ckpt_dir) / '*')), start=1):
+    for fold, model_path in enumerate(glob.glob(str(Path(args.ckpt_dir) / '*.pth'))):
         loader_test = DataLoader(dataset=dataset_test, batch_size=BATCH_SIZE)
         # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
         # Model = ResNet(freeze=False).to(device)
-        Model = EfficientNet(freeze=False).to(device)
-        Model.load_state_dict(torch.load(model_path))
+        Model = EfficientNet_v2().to(device)
+
+        Model.load_state_dict(torch.load(model_path, map_location=device)['model_state_dict'])
 
         Model.eval()
         pred = []

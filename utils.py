@@ -20,9 +20,9 @@ def rand_bbox(size, lam):
 
     return bbx1, bby1, bbx2, bby2
 
-def cutmix(x, y, model, criterion):
+def cutmix(x, y, model, criterion, device):
     lam = np.random.beta(1.0, 1.0)
-    rand_index = torch.randperm(x.size()[0]).cuda()
+    rand_index = torch.randperm(x.size()[0]).to(device)
     target_a = y
     target_b = y[rand_index]
     bbx1, bby1, bbx2, bby2 = rand_bbox(x.size(), lam)
@@ -60,11 +60,11 @@ class EarlyStopping:
         self.save = save
         self.cv = cv
 
-    def __call__(self, val_score, model):
+    def __call__(self, val_score, model, optim, epoch, lr_scheduler):
         score = val_score
 
         if self.best_score is None:
-            self.save_checkpoint(score, model)
+            self.save_checkpoint(score, model, optim, epoch, lr_scheduler)
             self.best_score = score
         elif score < self.best_score + self.delta:
             self.counter += 1
@@ -72,19 +72,25 @@ class EarlyStopping:
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
-            self.save_checkpoint(score, model)
+            self.save_checkpoint(score, model, optim, epoch, lr_scheduler)
             self.best_score = score
             self.counter = 0
 
-    def save_checkpoint(self, score, model):
+    def save_checkpoint(self, score, model, optim, epoch, lr_scheduler):
         if self.save:
             if self.verbose:
                 print(f'Validation score increased ({self.best_score:.6f} --> {score:.6f}).  Saving model ...')
 
             if self.save_path:
                 self.save_path.unlink()
-            self.save_path = self.path / ("{}_fold".format(self.cv) + str(np.round(score, 2)) + '.pth')
-            torch.save(model.state_dict(), self.save_path)
+            self.save_path = self.path / ("{}fold_{}_resume".format(self.cv, str(np.round(score, 2))) + '.pth')
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optim_state_dict': optim.state_dict(),
+                'best_score': self.best_score,
+                'scheduler_state_dict': lr_scheduler.state_dict()
+            }, self.save_path)
 
         else:
             pass

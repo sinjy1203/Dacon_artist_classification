@@ -39,6 +39,8 @@ parser.add_argument('--img_shape', default=500, type=int, dest='img_shape')
 parser.add_argument('--cutmix_prob', default=0.5, type=float, dest='cutmix_prob')
 parser.add_argument('--train_fold', nargs='+', type=int, dest='train_fold')
 
+parser.add_argument('--del_ckpt', default=False, type=bool, dest='del_ckpt')
+
 args = parser.parse_args()
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
@@ -64,6 +66,8 @@ if log_dir.exists():
 log_dir.mkdir(exist_ok=True)
 
 ckpt_dir = ROOT_DIR / 'ckpt'
+if args.del_ckpt and ckpt_dir.exists():
+    shutil.rmtree(ckpt_dir, onerror=remove_readonly)
 ckpt_dir.mkdir(exist_ok=True)
 
 ##
@@ -100,7 +104,7 @@ final_score = 0
 for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
     if fold not in args.train_fold:
         continue
-    print("Fold {} training".format(fold+1))
+    print("Fold {} training".format(fold))
 
     train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
     val_subsampler = torch.utils.data.SubsetRandomSampler(val_ids)
@@ -116,14 +120,26 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
     # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
     # Model = ResNet(freeze=False).to(device)
-    Model = EfficientNet(freeze=False).to(device)
+    Model = EfficientNet_v2().to(device)
     optim = torch.optim.Adam(Model.parameters(), lr=LR)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=5, gamma=0.85)
+    start_epoch = 1
+
     early_stopping = EarlyStopping(fold, path=ckpt_dir)
+
+    if glob.glob(str(ckpt_dir / '{}fold_*_resume.pth'.format(fold))):
+        model_path = glob.glob(str(ckpt_dir / '{}fold_*_resume.pth'.format(fold)))[0]
+        model_data = torch.load(model_path)
+        Model.load_state_dict(model_data['model_state_dict'])
+        optim.load_state_dict(model_data['optim_state_dict'])
+        lr_scheduler.load_state_dict(model_data['scheduler_state_dict'])
+        start_epoch = model_data['epoch'] + 1
+        early_stopping.save_path = Path(model_path)
 
     train_iter_num = len(train_loader)
     val_iter_num = len(val_loader)
 
-    for epoch in range(1, EPOCHS+1):
+    for epoch in range(start_epoch, EPOCHS+1):
         epoch_train_loss = 0
         epoch_train_score = 0
         epoch_val_loss = 0
@@ -138,7 +154,7 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
             r = np.random.rand(1)
             if r < CUTMIX_PROB:
-                loss = cutmix(train_x, train_y, Model, loss_fn)
+                loss = cutmix(train_x, train_y, Model, loss_fn, device)
             else:
                 output = Model(train_x)
                 loss = loss_fn(output, train_y)
@@ -164,8 +180,9 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
                 epoch_val_loss += loss.item() / val_iter_num
                 epoch_val_score += score / val_iter_num
-
-        early_stopping(epoch_val_score, Model)
+        
+        lr_scheduler.step()
+        early_stopping(epoch_val_score, Model, optim, epoch, lr_scheduler)
         if early_stopping.early_stop:
             print("Early stopping")
             break
@@ -176,6 +193,8 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
         del train_x, train_y, val_x, val_y
         gc.collect()
+
+    os.rename(str(early_stopping.save_path), str(early_stopping.save_path).replace("_resume", ""))
 
     final_score += early_stopping.best_score / len(args.train_fold)
     del Model

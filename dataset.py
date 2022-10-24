@@ -33,7 +33,11 @@ class dataset(Dataset):
 
     def __getitem__(self, idx):
         data_row = self.data_csv.iloc[idx]
-        img = PIL.Image.open(self.data_dir / data_row['img_path'])
+        try:
+            img = PIL.Image.open(self.data_dir / data_row['img_path'])
+        except:
+            print(self.data_dir / data_row['img_path'])
+            img = PIL.Image.open(self.data_dir / data_row['img_path'])
         if self.label:
             label = self.le.transform([data_row['artist']])[0]
             label = torch.tensor(label, dtype=torch.long)
@@ -124,16 +128,16 @@ if __name__ == "__main__":
         dataset_train, batch_size=8
     )
 
-    x, y = next(iter(train_loader))
-    x_ = x.clone().detach().numpy().transpose((0,2,3,1))
-    lam = np.random.beta(1.0, 1.0)
-    rand_index = torch.randperm(x.size()[0])
-    target_a = y
-    target_b = y[rand_index]
-    bbx1, bby1, bbx2, bby2 = rand_bbox(x.size(), lam)
-    x[:, :, bbx1:bbx2, bby1:bby2] = x[rand_index, :, bbx1:bbx2, bby1:bby2]
-    lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (x.size()[-1] * x.size()[-2]))
-    x = x.numpy().transpose((0,2,3,1))
+    # x, y = next(iter(train_loader))
+    # x_ = x.clone().detach().numpy().transpose((0,2,3,1))
+    # lam = np.random.beta(1.0, 1.0)
+    # rand_index = torch.randperm(x.size()[0])
+    # target_a = y
+    # target_b = y[rand_index]
+    # bbx1, bby1, bbx2, bby2 = rand_bbox(x.size(), lam)
+    # x[:, :, bbx1:bbx2, bby1:bby2] = x[rand_index, :, bbx1:bbx2, bby1:bby2]
+    # lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (x.size()[-1] * x.size()[-2]))
+    # x = x.numpy().transpose((0,2,3,1))
     # kfold = KFold(n_splits=5, shuffle=True, random_state=1)
     #
     # for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
