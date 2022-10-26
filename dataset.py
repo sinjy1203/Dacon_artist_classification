@@ -36,8 +36,10 @@ class dataset(Dataset):
         try:
             img = PIL.Image.open(self.data_dir / data_row['img_path'])
         except:
-            print(self.data_dir / data_row['img_path'])
-            img = PIL.Image.open(self.data_dir / data_row['img_path'])
+            # print(self.data_dir / data_row['img_path'])
+            # data_row = self.data_csv.iloc[np.random.randint(self.__len__())]
+            # img = PIL.Image.open(self.data_dir / data_row['img_path'])
+            raise
         if self.label:
             label = self.le.transform([data_row['artist']])[0]
             label = torch.tensor(label, dtype=torch.long)
