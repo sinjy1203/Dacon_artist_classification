@@ -35,10 +35,10 @@
 
 ## 4. 트러블 슈팅
 ### 오버피팅 문제
-- 학습데이터를 AlexNet 형태와 비슷한 모델의 가중치를 처음부터 학습하였더니 오버피팅 문제가 발생하였다.
+- 학습데이터를 AlexNet 형태와 비슷한 모델의 가중치를 처음부터 학습하였더니 오버피팅 문제가 발생
 - 분류할 클래스 수에 비해 학습이미지 데이터가 부족하다고 판단
 - image augmentation으로 학습데이터수를 증가
-- imagenet을 학습한 resnet, efficient net 학습 파라미터 사용
+- imagenet을 학습한 resnet, efficient net 파라미터 사용
 - cutmix를 통한 학습 데이터 수 증가
 ### 과소적합 문제
 - dropout, augmentation으로 인해 학습데이터의 loss가 줄어들지 않음 
