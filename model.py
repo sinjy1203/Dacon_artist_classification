@@ -6,6 +6,10 @@ import torch.nn as nn
 from torchsummary import summary
 from torchvision import models
 from efficientnet_pytorch import EfficientNet as efficientnet
+import timm
+from vit_pytorch import ViT
+from vit_pytorch import SimpleViT
+from vit_pytorch.mobile_vit import MobileViT
 
 ##
 class SimpleNet(nn.Module):
@@ -71,8 +75,21 @@ class EfficientNet(nn.Module):
 class EfficientNet_v2(nn.Module):
     def __init__(self):
         super(EfficientNet_v2, self).__init__()
-        self.net = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True, nclass=50)
+        # self.net = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True, nclass=50)
+        self.net = models.efficientnet_v2_m(pretrained=True)
+        self.net.classifier._modules['1'] = nn.Linear(self.net.classifier._modules['1'].in_features, 50)
+    def forward(self, x):
+        return self.net(x)
 
+class VIT(nn.Module):
+    def __init__(self):
+        super(VIT, self).__init__()
+        self.net = mbvit_xs = MobileViT(
+            image_size = (256, 256),
+            dims = [96, 120, 144],
+            channels = [16, 32, 48, 48, 64, 64, 80, 80, 96, 96, 384],
+            num_classes = 50
+        )
     def forward(self, x):
         return self.net(x)
 
@@ -97,17 +114,17 @@ if __name__ == '__main__':
     # model = ResNet(freeze=True)
     # model._fc = nn.Linear(model._fc.in_features, 50)
     # model = model.to(device='cuda')
-    # summary(model, (3, 500, 500))
-    # Model = SimpleNet(5, 100, 500)
-    # output = Model(torch.rand((10, 3, 500, 500)))
-    # pred = pred_fn(tonumpy_fn(output))
-    # score = score_fn(np.random.randint(50, size=10), pred)
-    # print(score)
-    # model = models.efficientnet
-    # model = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True, nclass=50)
-    # summary(model, (3, 500, 500), device='cpu')
-    Model = EfficientNet_v2()
-    summary(Model, (3, 500, 500), device='cpu')
+    model = VIT()
+    # model = EfficientNet(freeze=False)
+    summary(model, (3, 256, 256), device='cpu')
+
+    # Model = models.efficientnet_v2_s(weights=models.EfficientNet_V2_S_Weights.IMAGENET1K_V1)
+    # Model.classifier._modules['1'] = nn.Linear(Model.classifier._modules['1'].in_features, 50)
+    # summary(Model, (3, 500, 500), device='cpu')
+    # Model2 = torch.hub.load('hankyul2/EfficientNetV2-pytorch', 'efficientnet_v2_s', pretrained=True)
+    # print(torch.all(Model.classifier._modules['1'].bias == Model2.head.classifier.bias))
+    # for name, param in Model2.named_parameters():
+    #     print(name)
     
 
 

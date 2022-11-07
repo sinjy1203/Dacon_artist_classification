@@ -59,7 +59,7 @@ with torch.no_grad():
         loader_test = DataLoader(dataset=dataset_test, batch_size=BATCH_SIZE)
         # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
         # Model = ResNet(freeze=False).to(device)
-        Model = EfficientNet_v2().to(device)
+        Model = EfficientNet(freeze=False).to(device)
 
         Model.load_state_dict(torch.load(model_path, map_location=device)['model_state_dict'])
 

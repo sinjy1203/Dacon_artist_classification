@@ -77,8 +77,8 @@ dataset_train = dataset(
         transforms.RandomResizedCrop(size=(IMG_SHAPE, IMG_SHAPE)),
         transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
         transforms.RandomHorizontalFlip(0.5),
-        transforms.RandomPerspective(distortion_scale=0.3, p=0.5),
-        transforms.RandomRotation(45),
+        transforms.RandomPerspective(distortion_scale=0.1, p=0.5),
+        transforms.RandomRotation(20), #45
         ToTensor()
     ]))
 
@@ -90,7 +90,7 @@ if DEVICE == 'auto':
 else:
     device = torch.device(DEVICE)
 
-kfold = KFold(n_splits=CV, shuffle=True, random_state=1)
+kfold = KFold(n_splits=CV, shuffle=True, random_state=10)
 writer = SummaryWriter(log_dir=str(log_dir))
 
 ##
@@ -120,7 +120,7 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
 
     # Model = SimpleNet(N_BLOCKS, FEATURE, IMG_SHAPE).to(device)
     # Model = ResNet(freeze=False).to(device)
-    Model = EfficientNet_v2().to(device)
+    Model = EfficientNet(freeze=False).to(device)
     optim = torch.optim.Adam(Model.parameters(), lr=LR)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=5, gamma=0.85)
     start_epoch = 1

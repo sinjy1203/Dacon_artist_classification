@@ -36,7 +36,7 @@ def cutmix(x, y, model, criterion, device):
 
 class EarlyStopping:
     """주어진 patience 이후로 validation loss가 개선되지 않으면 학습을 조기 중지"""
-    def __init__(self, cv, path, patience=5, verbose=False, delta=0, save=True):
+    def __init__(self, cv, path, patience=10, verbose=False, delta=0, save=True):
         """
         Args:
             patience (int): validation loss가 개선된 후 기다리는 기간
