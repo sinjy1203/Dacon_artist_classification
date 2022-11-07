@@ -29,14 +29,20 @@
 
 `utils.py` early stopping
 
-`run_colab` 코랩 환경에서 gpu로 학습
+`run_colab.ipynb`, 'run_colab_test.ipynb' 코랩 환경에서 gpu 활용
 
 </br>
 
 ## 4. 트러블 슈팅
 ### 오버피팅 문제
-- 분류할 클래스 수에 비해 학습이미지 데이터가 부족하여 오버피팅 문제가 발생
-- image augmentation으로 학습데이터수를 늘려 어느정도 해결
-- resnet, efficient net을 활용한 transfer learning을 사용
-### 정확도 부족
-- cutmix augmentation과 더 큰 efficient net 모델을 활용할 예정
+- 학습데이터를 AlexNet 형태와 비슷한 모델의 가중치를 처음부터 학습하였더니 오버피팅 문제가 발생
+- 분류할 클래스 수에 비해 학습이미지 데이터가 부족하다고 판단
+- image augmentation으로 학습데이터수를 증가
+- imagenet을 학습한 resnet, efficient net 파라미터 사용
+- cutmix를 통한 학습 데이터 수 증가
+### 과소적합 문제
+- dropout, augmentation으로 인해 학습데이터의 loss가 줄어들지 않음 
+- 학습 파라미터 수가 부족하다고 판단
+- transfer learning에 freeze를 적용하지 않고 모든 파라미터를 학습
+- resnet 뿐만 아니라 efficientnet, efficientnetv2 모델을 사용하여 학습
+- imagenet에서 최근 좋은 성과를 내고 있는 다른 모델들을 찾아볼 예정
