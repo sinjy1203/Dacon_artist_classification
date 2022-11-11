@@ -45,4 +45,3 @@
 - 학습 파라미터 수가 부족하다고 판단
 - transfer learning에 freeze를 적용하지 않고 모든 파라미터를 학습
 - resnet 뿐만 아니라 efficientnet, efficientnetv2 모델을 사용하여 학습
-- imagenet에서 최근 좋은 성과를 내고 있는 다른 모델들을 찾아볼 예정
