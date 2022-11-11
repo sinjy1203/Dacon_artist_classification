@@ -78,7 +78,7 @@ dataset_train = dataset(
         transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
         transforms.RandomHorizontalFlip(0.5),
         transforms.RandomPerspective(distortion_scale=0.1, p=0.5),
-        transforms.RandomRotation(20), #45
+        transforms.RandomRotation(10), #45
         ToTensor()
     ]))
 
@@ -125,7 +125,7 @@ for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=5, gamma=0.85)
     start_epoch = 1
 
-    early_stopping = EarlyStopping(fold, path=ckpt_dir)
+    early_stopping = EarlyStopping(fold, path=ckpt_dir, patience=10)
 
     if glob.glob(str(ckpt_dir / '{}fold_*_resume.pth'.format(fold))):
         model_path = glob.glob(str(ckpt_dir / '{}fold_*_resume.pth'.format(fold)))[0]
